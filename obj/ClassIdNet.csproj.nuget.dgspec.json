@@ -5,7 +5,7 @@
   },
   "projects": {
     "E:\\code\\DirectedGraphSolution\\ClassIdNet\\ClassIdNet.csproj": {
-      "version": "1.0.0",
+      "version": "0.4.0",
       "restore": {
         "projectUniqueName": "E:\\code\\DirectedGraphSolution\\ClassIdNet\\ClassIdNet.csproj",
         "projectName": "ClassIdNet",

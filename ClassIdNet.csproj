@@ -4,6 +4,14 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PackageId>ClassIdNet</PackageId>
+    <Version>0.4.0</Version>
+    <Authors>Sasson Margaliot</Authors>
+    <Company>Linguistic Agents</Company>
+    <Title>ClassIdNet</Title>
+    <Description>A .NET library for creating, managing, and manipulating directed graphs.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/Linguistic-Agents-Development/ClassIdNet</RepositoryUrl>	  
   </PropertyGroup>
 
 </Project>

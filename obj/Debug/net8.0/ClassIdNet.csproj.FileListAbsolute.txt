@@ -9,3 +9,4 @@ E:\code\DirectedGraphSolution\ClassIdNet\obj\Debug\net8.0\ClassIdNet.dll
 E:\code\DirectedGraphSolution\ClassIdNet\obj\Debug\net8.0\refint\ClassIdNet.dll
 E:\code\DirectedGraphSolution\ClassIdNet\obj\Debug\net8.0\ClassIdNet.pdb
 E:\code\DirectedGraphSolution\ClassIdNet\obj\Debug\net8.0\ref\ClassIdNet.dll
+E:\code\DirectedGraphSolution\ClassIdNet\obj\Debug\net8.0\ClassIdNet.sourcelink.json

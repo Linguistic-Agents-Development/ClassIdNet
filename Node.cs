@@ -17,7 +17,6 @@ namespace ClassIdNet
         public List<float> __vector__ { get; set; } = new List<float>();
         public Dictionary<string, List<string>> Extra { get; set; } = new Dictionary<string, List<string>>();
 
-        // Constructor
         public Node(string Class, string Id, DirectedGraph graph)
         {
             this.Class = Class;
@@ -25,39 +24,44 @@ namespace ClassIdNet
             this.Graph = graph;
         }
 
-        // Method to add a single extra string value
+        public void AddLinkTo(string targetClass, string targetId)
+        {
+            Graph.EnsureNodeExists(targetClass, targetId);
+            if (!Graph.Links.ContainsKey(((this.Class, this.Id), (targetClass, targetId))))
+            {
+                Node targetNode = Graph.Nodes[targetClass].AllNodes[targetId];
+                DirectedLink link = new DirectedLink(this, targetNode);
+                Graph.AddLink(link);
+            }
+        }
+
+        public void AddLinkFrom(string sourceClass, string sourceId)
+        {
+            Graph.EnsureNodeExists(sourceClass, sourceId);
+            if (!Graph.Links.ContainsKey(((sourceClass, sourceId), (this.Class, this.Id))))
+            {
+                Node sourceNode = Graph.Nodes[sourceClass].AllNodes[sourceId];
+                DirectedLink link = new DirectedLink(sourceNode, this);
+                Graph.AddLink(link);
+            }
+        }
+
         public void AddExtra(string key, string value)
         {
-            if (!this.Extra.ContainsKey(key))
+            if (!Extra.ContainsKey(key))
             {
-                this.Extra[key] = new List<string>();
+                Extra[key] = new List<string>();
             }
-            this.Extra[key].Add(value);
+            Extra[key].Add(value);
         }
 
-        // Method to add multiple extra string values
         public void AddExtra(string key, List<string> values)
         {
-            if (!this.Extra.ContainsKey(key))
+            if (!Extra.ContainsKey(key))
             {
-                this.Extra[key] = new List<string>();
+                Extra[key] = new List<string>();
             }
-            this.Extra[key].AddRange(values);
-        }
-
-        // Method to add an outgoing link to a goal node
-        public void AddLinkTo(Node goal)
-        {
-            DirectedLink link = new DirectedLink(this, goal);
-            this.Graph.AddLink(link);
-        }
-
-        // Method to add an incoming link from a source node
-        public void AddLinkFrom(Node source)
-        {
-            DirectedLink link = new DirectedLink(source, this);
-            this.Graph.AddLink(link);
+            Extra[key].AddRange(values);
         }
     }
-
 }
