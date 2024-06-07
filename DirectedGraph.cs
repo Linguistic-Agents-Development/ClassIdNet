@@ -5,6 +5,11 @@ using System.Text;
 
 namespace ClassIdNet
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+
     public class DirectedGraph : GObject
     {
         public Dictionary<string, NodeIndex> Nodes { get; set; } = new Dictionary<string, NodeIndex>();
@@ -18,7 +23,10 @@ namespace ClassIdNet
             }
 
             NodeIndex nodeIndex = this.Nodes[node.Class];
-            nodeIndex.AllNodes[node.Id] = node;
+            if (!nodeIndex.AllNodes.ContainsKey(node.Id))
+            {
+                nodeIndex.AllNodes[node.Id] = node;
+            }
         }
 
         public void AddLink(DirectedLink link)
@@ -72,9 +80,9 @@ namespace ClassIdNet
             }
         }
 
-        public string SerializeGraph()
+        public List<string> ToStringList()
         {
-            StringBuilder sb = new StringBuilder();
+            List<string> lines = new List<string>();
 
             // Serialize Nodes
             foreach (string className in Nodes.Keys)
@@ -83,16 +91,16 @@ namespace ClassIdNet
                 foreach (string nodeId in nodeIndex.AllNodes.Keys)
                 {
                     Node node = nodeIndex.AllNodes[nodeId];
-                    sb.AppendLine($"[{node.Class}.{node.Id}]");
+                    lines.Add($"[{node.Class} : {node.Id}]");
 
                     if (!string.IsNullOrEmpty(node.__text__))
                     {
-                        sb.AppendLine($"__text__ = \"{node.__text__}\"");
+                        lines.Add($"__text__ : \"{node.__text__}\"");
                     }
 
                     if (node.__vector__.Any())
                     {
-                        sb.AppendLine($"__vector__ = [{string.Join(", ", node.__vector__)}]");
+                        lines.Add($"__vector__ : [{string.Join(", ", node.__vector__)}]");
                     }
 
                     foreach (string goalClass in node.Goals.Keys)
@@ -100,31 +108,29 @@ namespace ClassIdNet
                         HashSet<string> goalIds = node.Goals[goalClass];
                         if (goalIds.Count == 1)
                         {
-                            sb.AppendLine($"{goalClass} = {goalIds.First()}");
+                            lines.Add($"{goalClass} : {goalIds.First()}");
                         }
                         else
                         {
-                            sb.AppendLine($"{goalClass} = [{string.Join(", ", goalIds)}]");
+                            lines.Add($"{goalClass} : [{string.join(", ", goalIds)}]");
                         }
                     }
 
                     foreach (string extraKey in node.Extra.Keys)
                     {
                         List<string> extraValues = node.Extra[extraKey];
-                        sb.AppendLine($"{extraKey} = [{string.Join(", ", extraValues)}]");
+                        lines.Add($"{extraKey} : [{string.join(", ", extraValues)}]");
                     }
 
-                    sb.AppendLine();
+                    lines.Add("");
                 }
             }
 
-            return sb.ToString();
+            return lines;
         }
 
-        public static DirectedGraph DeserializeGraph(string data)
+        public void Upload(List<string> lines)
         {
-            DirectedGraph graph = new DirectedGraph();
-            string[] lines = data.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
             Node currentNode = null;
 
             foreach (string line in lines)
@@ -138,17 +144,18 @@ namespace ClassIdNet
                 if (trimmedLine.StartsWith("[") && trimmedLine.EndsWith("]"))
                 {
                     // Deserialize Node
-                    string nodeInfo = trimmedLine.Trim('[', ']');
-                    string[] nodeParts = nodeInfo.Split('.');
-                    string nodeClass = nodeParts[0];
-                    string nodeId = nodeParts[1];
+                    string nodeInfo = trimmedLine.Trim('[', ']').Trim();
+                    string[] nodeParts = nodeInfo.Split(new[] { ':' }, 2);
+                    string nodeClass = nodeParts[0].Trim();
+                    string nodeId = nodeParts[1].Trim();
 
-                    currentNode = new Node(nodeClass, nodeId, graph);
-                    graph.AddNode(currentNode);
+                    // Ensure the node exists or use the existing node
+                    EnsureNodeExists(nodeClass, nodeId);
+                    currentNode = Nodes[nodeClass].AllNodes[nodeId];
                 }
-                else if (currentNode != null && trimmedLine.Contains("="))
+                else if (currentNode != null && trimmedLine.Contains(":"))
                 {
-                    string[] parts = trimmedLine.Split(new[] { '=' }, 2);
+                    string[] parts = trimmedLine.Split(new[] { ':' }, 2);
                     string key = parts[0].Trim();
                     string value = parts[1].Trim();
 
@@ -175,10 +182,13 @@ namespace ClassIdNet
                         {
                             foreach (string itemId in items)
                             {
-                                graph.EnsureNodeExists(key, itemId);
-                                Node targetNode = graph.Nodes[key].AllNodes[itemId];
+                                EnsureNodeExists(key, itemId);
+                                Node targetNode = Nodes[key].AllNodes[itemId];
                                 DirectedLink link = new DirectedLink(currentNode, targetNode);
-                                graph.AddLink(link);
+                                if (!Links.ContainsKey(((currentNode.Class, currentNode.Id), (key, itemId))))
+                                {
+                                    AddLink(link);
+                                }
                             }
                         }
                     }
@@ -191,16 +201,17 @@ namespace ClassIdNet
                         }
                         else
                         {
-                            graph.EnsureNodeExists(key, value);
-                            Node targetNode = graph.Nodes[key].AllNodes[value];
+                            EnsureNodeExists(key, value);
+                            Node targetNode = Nodes[key].AllNodes[value];
                             DirectedLink link = new DirectedLink(currentNode, targetNode);
-                            graph.AddLink(link);
+                            if (!Links.ContainsKey(((currentNode.Class, currentNode.Id), (key, value))))
+                            {
+                                AddLink(link);
+                            }
                         }
                     }
                 }
             }
-
-            return graph;
         }
     }
 }
