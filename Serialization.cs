@@ -6,20 +6,21 @@ using System.Threading.Tasks;
 
 namespace ClassIdNet
 {
-    public static class DiGraphDL
+    public static class Serialization
     {
+        // Directed Graph Protocol
         public static List<string> SerializeGraph(DirectedGraph graph)
         {
             List<string> lines = new List<string>();
 
             // Serialize Nodes
-            foreach (string className in graph.Nodes.Keys)
+            foreach (string className in graph.Classes.Keys)
             {
-                NodeIndex nodeIndex = graph.Nodes[className];
-                foreach (string nodeId in nodeIndex.AllNodes.Keys)
+                ClassSubgraph classSubgraph = graph.Classes[className];
+                foreach (string nodeId in classSubgraph.AllNodes.Keys)
                 {
-                    Node node = nodeIndex.AllNodes[nodeId];
-                    lines.Add($"[{node.Class} : {node.Id}]");
+                    Node node = classSubgraph.AllNodes[nodeId];
+                    lines.Add($"[{node.Class.ClassName} : {node.Id}]");
 
                     if (!string.IsNullOrEmpty(node.__text__))
                     {
@@ -56,6 +57,7 @@ namespace ClassIdNet
             return lines;
         }
 
+        // Directed Graph Protocol
         public static DirectedGraph DeserializeGraph(List<string> lines)
         {
             DirectedGraph graph = new DirectedGraph();
@@ -79,7 +81,7 @@ namespace ClassIdNet
 
                     // Ensure the node exists or use the existing node
                     graph.EnsureNodeExists(nodeClass, nodeId);
-                    currentNode = graph.Nodes[nodeClass].AllNodes[nodeId];
+                    currentNode = graph.Classes[nodeClass].AllNodes[nodeId];
                 }
                 else if (currentNode != null && trimmedLine.Contains(":"))
                 {
@@ -131,6 +133,5 @@ namespace ClassIdNet
 
             return graph;
         }
-
     }
 }

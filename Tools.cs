@@ -7,7 +7,6 @@ using System.IO;
 
 namespace ClassIdNet
 {
-
     public static class Tools
     {
         /// <summary>
@@ -36,11 +35,11 @@ namespace ClassIdNet
         /// <param name="graph">The graph to print.</param>
         public static void PrintGraph(DirectedGraph graph)
         {
-            foreach (var nodeIndex in graph.Nodes.Values)
+            foreach (var classSubgraph in graph.Classes.Values)
             {
-                foreach (var node in nodeIndex.AllNodes.Values)
+                foreach (var node in classSubgraph.AllNodes.Values)
                 {
-                    Console.WriteLine($"[{node.Class} : {node.Id}]");
+                    Console.WriteLine($"[{node.Class.ClassName} : {node.Id}]");
                     if (!string.IsNullOrEmpty(node.__text__))
                     {
                         Console.WriteLine($"__text__ : \"{node.__text__}\"");

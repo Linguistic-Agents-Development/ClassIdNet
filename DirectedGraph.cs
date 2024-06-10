@@ -7,72 +7,188 @@ namespace ClassIdNet
 {
     public class DirectedGraph : GObject
     {
-        public Dictionary<string, NodeIndex> Nodes { get; set; } = new Dictionary<string, NodeIndex>();
-        public Dictionary<((string Class, string Id) Source, (string Class, string Id) Goal), DirectedLink> Links { get; set; } = new Dictionary<((string Class, string Id), (string Class, string Id)), DirectedLink>();
+        public Dictionary<string, ClassSubgraph> Classes { get; set; }
+        public Dictionary<((string Class, string Id) Source, (string Class, string Id) Goal), DirectedLink> Links { get; set; }
+
+        public DirectedGraph()
+        {
+            Classes = new Dictionary<string, ClassSubgraph>();
+            Links = new Dictionary<((string Class, string Id), (string Class, string Id)), DirectedLink>();
+        }
 
         public void AddNode(Node node)
         {
-            if (!this.Nodes.ContainsKey(node.Class))
-            {
-                this.Nodes[node.Class] = new NodeIndex(node.Class);
-            }
+            AddClass(node.Class.ClassName);
 
-            NodeIndex nodeIndex = this.Nodes[node.Class];
-            if (!nodeIndex.AllNodes.ContainsKey(node.Id))
+            ClassSubgraph classSubgraph = this.Classes[node.Class.ClassName];
+            if (!classSubgraph.AllNodes.ContainsKey(node.Id))
             {
-                nodeIndex.AllNodes[node.Id] = node;
+                classSubgraph.AllNodes[node.Id] = node;
             }
         }
 
         public void AddLink(DirectedLink link)
         {
-            // Ensure nodes are registered in the graph
             AddNode(link.Source);
             AddNode(link.Goal);
 
-            // Prevent self-loop
             if (link.Source == link.Goal)
             {
                 throw new InvalidOperationException("Cannot add a link from a node to itself.");
             }
 
-            var key = ((link.Source.Class, link.Source.Id), (link.Goal.Class, link.Goal.Id));
+            var key = ((link.Source.Class.ClassName, link.Source.Id), (link.Goal.Class.ClassName, link.Goal.Id));
 
-            // Check if the link already exists
             if (Links.ContainsKey(key))
             {
-                throw new InvalidOperationException("A link between these nodes already exists.");
+                // Ignore adding the link if it already exists
+                return;
             }
 
             Links[key] = link;
 
-            // Update source node's goals
-            if (!link.Source.Goals.ContainsKey(link.Goal.Class))
+            if (!link.Source.Goals.ContainsKey(link.Goal.Class.ClassName))
             {
-                link.Source.Goals[link.Goal.Class] = new HashSet<string>();
+                link.Source.Goals[link.Goal.Class.ClassName] = new HashSet<string>();
             }
-            link.Source.Goals[link.Goal.Class].Add(link.Goal.Id);
+            link.Source.Goals[link.Goal.Class.ClassName].Add(link.Goal.Id);
 
-            // Update goal node's sources
-            if (!link.Goal.Sources.ContainsKey(link.Source.Class))
+            if (!link.Goal.Sources.ContainsKey(link.Source.Class.ClassName))
             {
-                link.Goal.Sources[link.Source.Class] = new HashSet<string>();
+                link.Goal.Sources[link.Source.Class.ClassName] = new HashSet<string>();
             }
-            link.Goal.Sources[link.Source.Class].Add(link.Source.Id);
+            link.Goal.Sources[link.Source.Class.ClassName].Add(link.Source.Id);
         }
 
-        public void EnsureNodeExists(string nodeClass, string nodeId)
+        public void EnsureNodeExists(string className, string id)
         {
-            if (!Nodes.ContainsKey(nodeClass))
+            AddClass(className);
+
+            if (!Classes[className].AllNodes.ContainsKey(id))
             {
-                Nodes[nodeClass] = new NodeIndex(nodeClass);
+                Node newNode = new Node(className, id, this);
+                Classes[className].AllNodes[id] = newNode;
+            }
+        }
+
+        public ClassSubgraph GetClass(string className)
+        {
+            AddClass(className);
+            return Classes[className];
+        }
+
+        public void AddClass(string className)
+        {
+            if (!this.Classes.ContainsKey(className))
+            {
+                this.Classes[className] = new ClassSubgraph(className, this);
+            }
+        }
+
+        public bool Contains(DirectedGraph graph)
+        {
+            foreach (var classEntry in graph.Classes)
+            {
+                if (!this.Classes.ContainsKey(classEntry.Key))
+                {
+                    return false;
+                }
+
+                foreach (var nodeEntry in classEntry.Value.AllNodes)
+                {
+                    if (!this.Classes[classEntry.Key].AllNodes.ContainsKey(nodeEntry.Key))
+                    {
+                        return false;
+                    }
+                }
             }
 
-            if (!Nodes[nodeClass].AllNodes.ContainsKey(nodeId))
+            foreach (var link in graph.Links)
             {
-                Node newNode = new Node(nodeClass, nodeId, this);
-                Nodes[nodeClass].AllNodes[nodeId] = newNode;
+                if (!this.Links.ContainsKey(link.Key))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public bool Equals(DirectedGraph graph)
+        {
+            return this.Contains(graph) && graph.Contains(this);
+        }
+
+        public DirectedGraph Copy()
+        {
+            DirectedGraph copy = new DirectedGraph();
+
+            foreach (var classEntry in this.Classes)
+            {
+                copy.AddClass(classEntry.Key);
+                foreach (var nodeEntry in classEntry.Value.AllNodes)
+                {
+                    Node newNode = new Node(classEntry.Key, nodeEntry.Key, copy);
+                    newNode.__text__ = nodeEntry.Value.__text__;
+                    newNode.__vector__ = new List<float>(nodeEntry.Value.__vector__);
+                    foreach (var extraEntry in nodeEntry.Value.Extra)
+                    {
+                        newNode.Extra[extraEntry.Key] = new List<string>(extraEntry.Value);
+                    }
+                    copy.AddNode(newNode);
+                }
+            }
+
+            foreach (var linkEntry in this.Links)
+            {
+                Node sourceNode = copy.Classes[linkEntry.Key.Source.Class].AllNodes[linkEntry.Key.Source.Id];
+                Node goalNode = copy.Classes[linkEntry.Key.Goal.Class].AllNodes[linkEntry.Key.Goal.Id];
+                DirectedLink newLink = new DirectedLink(sourceNode, goalNode);
+                copy.AddLink(newLink);
+            }
+
+            return copy;
+        }
+
+        public void Merge(DirectedGraph graph)
+        {
+            foreach (var classEntry in graph.Classes)
+            {
+                this.AddClass(classEntry.Key);
+                foreach (var nodeEntry in classEntry.Value.AllNodes)
+                {
+                    if (!this.Classes[classEntry.Key].AllNodes.ContainsKey(nodeEntry.Key))
+                    {
+                        Node newNode = new Node(classEntry.Key, nodeEntry.Key, this);
+                        newNode.__text__ = nodeEntry.Value.__text__;
+                        newNode.__vector__ = new List<float>(nodeEntry.Value.__vector__);
+                        foreach (var extraEntry in nodeEntry.Value.Extra)
+                        {
+                            newNode.Extra[extraEntry.Key] = new List<string>(extraEntry.Value);
+                        }
+                        this.AddNode(newNode);
+                    }
+                    else
+                    {
+                        // Merge nodes with the same ID
+                        Node existingNode = this.Classes[classEntry.Key].AllNodes[nodeEntry.Key];
+                        Node newNode = nodeEntry.Value;
+                        existingNode.Merge(newNode);
+                    }
+                }
+            }
+
+            foreach (var linkEntry in graph.Links)
+            {
+                if (!this.Links.ContainsKey(linkEntry.Key))
+                {
+                    Node sourceNode = this.Classes[linkEntry.Key.Source.Class].AllNodes[linkEntry.Key.Source.Id];
+                    Node goalNode = this.Classes[linkEntry.Key.Goal.Class].AllNodes[linkEntry.Key.Goal.Id];
+                    DirectedLink newLink = new DirectedLink(sourceNode, goalNode);
+                    this.AddLink(newLink);
+                }
             }
         }
     }
 }
+

@@ -6,14 +6,17 @@ using System.Threading.Tasks;
 
 namespace ClassIdNet
 {
-    public class NodeIndex : GObject
+    public class ClassSubgraph : GObject
     {
         public string ClassName { get; }
+        public DirectedGraph Graph { get; }
         public Dictionary<string, Node> AllNodes { get; set; }
 
-        public NodeIndex(string className)
+        // Constructor
+        public ClassSubgraph(string className, DirectedGraph graph)
         {
             this.ClassName = className;
+            this.Graph = graph;
             this.AllNodes = new Dictionary<string, Node>();
         }
     }

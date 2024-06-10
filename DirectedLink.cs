@@ -8,8 +8,8 @@ namespace ClassIdNet
 {
     public class DirectedLink : GObject
     {
-        public Node Source { get; set; }
-        public Node Goal { get; set; }
+        public Node  Source { get; set; }
+        public Node  Goal { get; set; }
 
         // Constructor
         public DirectedLink(Node source, Node goal)

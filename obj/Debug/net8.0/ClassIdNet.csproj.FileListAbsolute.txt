@@ -5,8 +5,8 @@ E:\code\DirectedGraphSolution\ClassIdNet\obj\Debug\net8.0\ClassIdNet.GeneratedMS
 E:\code\DirectedGraphSolution\ClassIdNet\obj\Debug\net8.0\ClassIdNet.AssemblyInfoInputs.cache
 E:\code\DirectedGraphSolution\ClassIdNet\obj\Debug\net8.0\ClassIdNet.AssemblyInfo.cs
 E:\code\DirectedGraphSolution\ClassIdNet\obj\Debug\net8.0\ClassIdNet.csproj.CoreCompileInputs.cache
+E:\code\DirectedGraphSolution\ClassIdNet\obj\Debug\net8.0\ClassIdNet.sourcelink.json
 E:\code\DirectedGraphSolution\ClassIdNet\obj\Debug\net8.0\ClassIdNet.dll
 E:\code\DirectedGraphSolution\ClassIdNet\obj\Debug\net8.0\refint\ClassIdNet.dll
 E:\code\DirectedGraphSolution\ClassIdNet\obj\Debug\net8.0\ClassIdNet.pdb
 E:\code\DirectedGraphSolution\ClassIdNet\obj\Debug\net8.0\ref\ClassIdNet.dll
-E:\code\DirectedGraphSolution\ClassIdNet\obj\Debug\net8.0\ClassIdNet.sourcelink.json

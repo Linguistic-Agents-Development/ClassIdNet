@@ -36,11 +36,17 @@ namespace ClassIdNet
         // Extension method for filtering nodes by class name
         public static IEnumerable<Node> WithClass(this DirectedGraph graph, string className)
         {
-            if (graph.Nodes.ContainsKey(className))
+            if (graph.Classes.ContainsKey(className))
             {
-                return graph.Nodes[className].AllNodes.Values;
+                return graph.Classes[className].AllNodes.Values;
             }
             return Enumerable.Empty<Node>();
+        }
+
+        // Extension methods
+        public static List<Node> FindByClass(this IEnumerable<Node> nodes, string className)
+        {
+            return nodes.Where(n => n.Class.ClassName == className).ToList();
         }
     }
 }

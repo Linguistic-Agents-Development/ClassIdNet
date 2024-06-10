@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v8.0": {
-      "ClassIdNet/1.0.0": {
+      "ClassIdNet/0.4.0": {
         "runtime": {
           "ClassIdNet.dll": {}
         }
@@ -14,7 +14,7 @@
     }
   },
   "libraries": {
-    "ClassIdNet/1.0.0": {
+    "ClassIdNet/0.4.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
